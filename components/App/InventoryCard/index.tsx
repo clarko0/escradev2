@@ -27,20 +27,7 @@ const InventoryCard = (props: any) => {
       onMouseLeave={() => {
         setIsHovered(false);
       }}
-      onClick={async (event) => {
-        await props.handleSelect({
-          object_id: props.objectId,
-          id: props.id,
-          contract_address: props.contractAddress,
-          chain_id: props.chainId,
-          image: props.image,
-          name: props.name,
-          is_verified: props.isVerifed,
-          project_name: props.projectName,
-          type: props.type,
-          is_selected: props.isSelected,
-        });
-      }}
+      onClick={(event) => {}}
       style={{
         userSelect: "none",
         cursor: "pointer",

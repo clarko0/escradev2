@@ -53,32 +53,10 @@ const Inventory = (props: any) => {
     window.location.reload();
   };
 
-  const handleSelect = (data: any) => {
-    if (itemData.length > 0) {
-      const newItemData = [...itemData];
-      const index = newItemData.findIndex(
-        (item) => item.object_id === data.object_id
-      );
-      console.log(itemData, "object");
-      console.log(itemData[0]);
-      console.log(data, "data");
-      //   newItemData[index].is_selected = !newItemData[index].is_selected;
-      //   setItemData(newItemData);
-      //   const alreadySelected = selectedItems.find(
-      //     (el) => el.object_id === data.object_id
-      //   );
-      //   if (!alreadySelected) {
-      //     setSelectedItems([...selectedItems, { ...data, is_selected: true }]);
-      //   } else {
-      //     setSelectedItems(
-      //       selectedItems.filter((el) => el.object_id !== data.object_id)
-      //     );
-      //   }
-      // }
-    }
-  };
+  const handleSelect = (data: any) => {};
 
   const handleSearch = () => {
+    console.log(itemData);
     const response = itemData.filter((item) => {
       if (!verified || item.is_verified) {
         if (
@@ -142,7 +120,8 @@ const Inventory = (props: any) => {
     handleSearch();
   }, [currentSearch, currentFilter, verified, selectedItems]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    console.log("Layout Rerendered");
     const cardElements: any[] = [];
     const dataArray: any[] = [];
 
