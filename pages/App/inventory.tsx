@@ -53,10 +53,40 @@ const Inventory = (props: any) => {
     window.location.reload();
   };
 
-  const handleSelect = (data: any) => {};
+  const handleSelect = (event: any, data: any) => {
+    if (!inSelectMode) {
+      return;
+    }
+    const newItemData = itemData.map((item) => {
+      if (item.object_id === data.object_id) {
+        return {
+          ...item,
+          is_selected: !item.is_selected,
+        };
+      }
+      return item;
+    });
+    setItemData(newItemData);
+    let newSelectedData;
+    if (data.is_selected) {
+      newSelectedData = selectedItems.filter((item) => {
+        if (item.object_id === data.object_id) {
+          return false;
+        }
+        return true;
+      });
+    } else {
+      data.is_selected = true;
+      newSelectedData = [...selectedItems, data];
+    }
+    setSelectedItems(newSelectedData);
+  };
+
+  useEffect(() => {
+    console.log(selectedItems, "Current items selected");
+  }, [selectedItems]);
 
   const handleSearch = () => {
-    console.log(itemData);
     const response = itemData.filter((item) => {
       if (!verified || item.is_verified) {
         if (
@@ -117,11 +147,35 @@ const Inventory = (props: any) => {
   };
 
   useEffect(() => {
+    const cardElements: any = [];
+    if (itemData.length > 0) {
+      itemData.forEach((element) => {
+        cardElements.push(
+          <InventoryCard
+            objectId={element.object_id}
+            id={element.id}
+            contractAddress={element.contract_address}
+            chainId={element.chain_id}
+            image={element.image}
+            name={element.name}
+            isVerifed={element.is_verified}
+            Styling={Styling}
+            projectName={element.project_name}
+            type={element.type}
+            isSelected={element.is_selected}
+            handleSelect={handleSelect}
+          />
+        );
+      });
+      setItems(cardElements);
+    }
+  }, [itemData, inSelectMode]);
+
+  useEffect(() => {
     handleSearch();
   }, [currentSearch, currentFilter, verified, selectedItems]);
 
   useEffect(() => {
-    console.log("Layout Rerendered");
     const cardElements: any[] = [];
     const dataArray: any[] = [];
 
@@ -174,25 +228,6 @@ const Inventory = (props: any) => {
         });
       });
       setItemData(dataArray);
-      dataArray.forEach((element) => {
-        cardElements.push(
-          <InventoryCard
-            objectId={element.object_id}
-            id={element.id}
-            contractAddress={element.contract_address}
-            chainId={element.chain_id}
-            image={element.image}
-            name={element.name}
-            isVerifed={element.is_verified}
-            Styling={Styling}
-            projectName={element.project_name}
-            type={element.type}
-            isSelected={element.is_selected}
-            handleSelect={handleSelect}
-          />
-        );
-      });
-      setItems(cardElements);
     });
   }, []);
 
@@ -366,7 +401,16 @@ const Inventory = (props: any) => {
               fontWeight: "800",
             }}
             onClick={() => {
+              const newItemData = itemData;
+              selectedItems.forEach((Element) => {
+                newItemData.forEach((item) => {
+                  if (Element.object_id === item.object_id) {
+                    item.is_selected = !item.is_selected;
+                  }
+                });
+              });
               setSelectedItems([]);
+              setItemData(newItemData);
               setInSelectMode(false);
             }}
           >
