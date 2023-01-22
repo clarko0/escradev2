@@ -14,6 +14,7 @@ import {
   CheckTheme,
 } from "../../storage/utils/tools/LocalStorage";
 import { GetAddress } from "../../storage/utils/tools/Web3Tools";
+import MenuItem from "../../components/App/MenuItem";
 
 interface StylingObject {
   [key: string]: any;
@@ -38,19 +39,44 @@ const Inventory = (props: any) => {
   const [isGearFilter, setIsGearFilter] = useState<boolean>(false);
   const [itemData, setItemData] = useState<any[]>([]);
   const [currentSearch, setCurrentSearch] = useState<string>("");
+  const [isSendMenu, setIsSendMenu] = useState<boolean>(false);
   const [currentFilter, setCurrentFilter] = useState<FilterOptions>({
     type: "",
     platform: "",
   });
+  const ethAddressPattern = /^0x[0-9a-fA-F]{40}$/;
+  const [menuItems, setMenuItems] = useState<any[]>([]);
   const [verified, setVerified] = useState<boolean>(false);
   const [createMenuHovered, setCreateMenuHovered] = useState<boolean>(false);
   const [inSelectMode, setInSelectMode] = useState<boolean>(false);
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  const [sendAddress, setSendAddress] = useState<string>("");
+  const [addressWarning, setAddressWarning] = useState<boolean>(false);
+  const [canSend, setCanSend] = useState<boolean>(false);
 
   const handleThemeChange = () => {
     ChangeTheme();
     setStyling(CheckTheme());
     window.location.reload();
+  };
+  const handleFocus = (event: any) => {
+    event.target.style.outline = "none";
+  };
+
+  const handleAddressInput = (event: any) => {
+    if (event.target.value.length === 0) {
+      setAddressWarning(false);
+      setCanSend(false);
+      return;
+    }
+    if (ethAddressPattern.test(event.target.value)) {
+      setSendAddress(event.target.value);
+      setAddressWarning(false);
+      setCanSend(true);
+    } else {
+      setAddressWarning(true);
+      setCanSend(false);
+    }
   };
 
   const handleSelect = (event: any, data: any) => {
@@ -83,7 +109,24 @@ const Inventory = (props: any) => {
   };
 
   useEffect(() => {
-    console.log(selectedItems, "Current items selected");
+    const temp: any[] = [];
+    selectedItems.forEach((element) => {
+      temp.push(
+        <MenuItem
+          objectId={element.object_id}
+          id={element.id}
+          contractAddress={element.contract_address}
+          chainId={element.chain_id}
+          image={element.image}
+          name={element.name}
+          isVerifed={element.is_verified}
+          Styling={Styling}
+          projectName={element.project_name}
+          type={element.type}
+        />
+      );
+    });
+    setMenuItems(temp);
   }, [selectedItems]);
 
   const handleSearch = () => {
@@ -349,6 +392,9 @@ const Inventory = (props: any) => {
         {inSelectMode && (
           <div
             className="flex items-center justify-center"
+            onClick={() => {
+              setIsSendMenu(true);
+            }}
             style={{
               background:
                 selectedItems.length > 0 ? Styling.btnGradient : "grey",
@@ -819,6 +865,160 @@ const Inventory = (props: any) => {
       >
         {items === null ? "No items found :(" : items}
       </div>
+      {isSendMenu && (
+        <div
+          className="fixed flex items-center justify-center"
+          style={{ width: "100%", height: "100%", backdropFilter: "blur(5px)" }}
+        >
+          (
+          <div
+            style={{
+              width: "480px",
+              height: "600px",
+              borderRadius: "10px",
+              background: "#353945",
+            }}
+          >
+            <div
+              className="flex items-center"
+              style={{ marginLeft: "40px", marginTop: "25px", gap: "150px" }}
+            >
+              <div
+                style={{ fontSize: "40px", fontWeight: "600", color: "#fff" }}
+              >
+                Send Items
+              </div>
+              <div
+                onClick={() => {
+                  setIsSendMenu(false);
+                }}
+                className="flex items-center justify-center"
+                style={{
+                  border: "2px solid #fff",
+                  width: "40px",
+                  borderRadius: "999px",
+                  cursor: "pointer",
+                  height: "40px",
+                }}
+              >
+                <svg
+                  width="15"
+                  height="14"
+                  viewBox="0 0 15 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M0.292787 0.305288C0.480314 0.117817 0.734622 0.0125018 0.999786 0.0125018C1.26495 0.0125018 1.51926 0.117817 1.70679 0.305288L6.99979 5.59829L12.2928 0.305288C12.385 0.209778 12.4954 0.133596 12.6174 0.0811869C12.7394 0.0287779 12.8706 0.00119157 13.0034 3.77571e-05C13.1362 -0.00111606 13.2678 0.0241854 13.3907 0.0744663C13.5136 0.124747 13.6253 0.199 13.7192 0.292893C13.8131 0.386786 13.8873 0.498438 13.9376 0.621334C13.9879 0.744231 14.0132 0.87591 14.012 1.00869C14.0109 1.14147 13.9833 1.27269 13.9309 1.39469C13.8785 1.5167 13.8023 1.62704 13.7068 1.71929L8.41379 7.01229L13.7068 12.3053C13.8889 12.4939 13.9897 12.7465 13.9875 13.0087C13.9852 13.2709 13.88 13.5217 13.6946 13.7071C13.5092 13.8925 13.2584 13.9977 12.9962 14C12.734 14.0022 12.4814 13.9014 12.2928 13.7193L6.99979 8.42629L1.70679 13.7193C1.51818 13.9014 1.26558 14.0022 1.00339 14C0.741188 13.9977 0.490376 13.8925 0.304968 13.7071C0.11956 13.5217 0.0143906 13.2709 0.0121121 13.0087C0.00983372 12.7465 0.110629 12.4939 0.292787 12.3053L5.58579 7.01229L0.292787 1.71929C0.105316 1.53176 0 1.27745 0 1.01229C0 0.747124 0.105316 0.492816 0.292787 0.305288Z"
+                    fill="white"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div
+                style={{
+                  fontWeight: "500",
+                  color: "#777E90",
+                  fontSize: "20px",
+                  marginLeft: "40px",
+                  marginTop: "40px",
+                }}
+              >
+                ITEMS ({selectedItems.length})
+              </div>
+              <div
+                className="menuitem flex"
+                style={{
+                  marginLeft: "60px",
+                  flexDirection: "column",
+                  height: "180px",
+                  overflow: "scroll",
+                }}
+              >
+                {menuItems}
+              </div>
+            </div>
+            <div
+              className="flex justify-center items-center"
+              style={{
+                transition: "0.2s",
+                width: "320px",
+                height: "100px",
+                border: addressWarning ? "1px solid red" : "1px solid #787EFF",
+                borderRadius: "6px",
+                marginLeft: "80px",
+                marginTop: "50px",
+              }}
+            >
+              <div
+                className="absolute"
+                style={{
+                  transition: "opacity 0.2s",
+                  color: "red",
+                  marginTop: "130px",
+                  overflow: "hidden",
+                  opacity: addressWarning ? "1" : "0",
+                  marginLeft: "-140px",
+                }}
+              >
+                * This address is invalid
+              </div>
+              <div
+                className=" absolute flex items-center justify-center"
+                style={{
+                  fontWeight: "500",
+                  userSelect: "none",
+                  color: "#fff",
+                  background: "#353945",
+                  marginTop: "-100px",
+                  width: "175px",
+                }}
+              >
+                TARGET ADDRESS
+              </div>
+              <input
+                onFocus={handleFocus}
+                onChange={handleAddressInput}
+                placeholder="0xabcde..."
+                style={{
+                  background: "transparent",
+                  fontSize: "16px",
+                  textAlign: "center",
+                  width: "100%",
+                  color: "#fff",
+                  fontWeight: "500",
+                }}
+              />
+            </div>
+            <div
+              onClick={() => {
+                if (canSend) {
+                }
+              }}
+              className="flex items-center justify-center"
+              style={{
+                transition: "0.5s",
+                userSelect: "none",
+                cursor: canSend ? "pointer" : "not-allowed",
+                background: canSend ? "#195FC2" : "grey",
+                width: "60%",
+                marginLeft: "96px",
+                marginTop: "30px",
+                borderRadius: "10px",
+                height: "60px",
+                fontWeight: "600",
+                color: "#fff",
+                fontSize: "24px",
+              }}
+            >
+              Send
+            </div>
+          </div>
+        </div>
+      )}
       <Footer handleThemeChange={handleThemeChange} Styling={Styling} />
     </div>
   );
